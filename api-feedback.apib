@@ -1,0 +1,41 @@
+FORMAT: 1A
+
+# Feedbacks
+
+Feedbacks is a simple API allowing consumers to view feedbacks.
+
+## Questions Collection [/feedbacks{?size,offset}]
+
+### List All Feedbacks [POST]
+
++ Parameters
+
+    + size (number, optional) - The maximum number of results to return.
+    + offset (number, optional) - Start index for skip.
+
++ Request (application/json)
+
+        {
+            "sort": {
+                "rating": "asc"
+            },
+            "filters": {
+                "rating": 3
+            }
+        }
+
+
++ Response 200 (application/json)
+
+    + Body
+    
+            [
+                {
+                    "answers": [],
+                    "_id": "5dd583544295ea34e7ca036d",
+                    "body": "не положили салфетки",
+                    "author": "Григорий",
+                    "rating": 3,
+                    "__v": 0
+                }
+            ]
