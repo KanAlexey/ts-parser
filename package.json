@@ -14,9 +14,11 @@
   "author": "Kan Aleksei",
   "license": "ISC",
   "dependencies": {
+    "@types/lodash": "^4.14.149",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "lodash": "^4.17.15",
     "mongoose": "^5.7.11",
     "puppeteer": "^2.0.0"
   },

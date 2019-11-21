@@ -1,3 +1,5 @@
+import { isEmpty, difference } from 'lodash';
+
 export function getSortingObject(sortInfo: { [key: string]: string }): { [key: string]: number } {
     const sort: { [key: string]: number } = {};
     if (sortInfo) {
@@ -22,4 +24,35 @@ export function getFilterObject(filter: { [key: string]: string }): { [key: stri
         })
     }
     return query;
+}
+
+export function isEqual(a: any, b: any) {
+  const isSame = (arrayOne: any, arrayTwo: any) => {
+      if (!arrayOne || !arrayTwo) {
+          return false;
+      }
+      let ac = arrayOne,
+          bc = arrayTwo;
+   
+      if (arrayOne.length <= arrayTwo.length) {
+         ac = arrayTwo;
+         bc = arrayOne;
+         return isEmpty(difference(ac.sort(), bc.sort()));
+      } else {
+         return false;
+      }
+  }
+  return isSame(a.answers, b.answers);
+}
+
+export function getDate(dateString: string): string {
+  const monthArray = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const dateArray = dateString.split(' ');
+  const day = dateArray[0];
+  const year = dateArray[dateArray.length - 2].replace(',', '');
+  const month = monthArray.indexOf(dateArray[1]) + 1;
+  const time = dateArray[dateArray.length - 1].split(':');
+  const hours = time[0].length < 2  ? `0${time[0]}` : time[0]
+  const mins = time[1]
+  return new Date(`${year}-${month}-${day}T${hours}:${mins}:00Z`).toISOString();
 }

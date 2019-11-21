@@ -1,5 +1,7 @@
 import { Feedback } from '../models/feedback.model';
-import {launch} from 'puppeteer';
+import { launch } from 'puppeteer';
+import { isEqual, getDate } from '../helper/feedback.helper';
+import { IFeedback } from '../types/feedback.interface';
 
 export class FeedbackScraperService {
     private baseUrl: string;
@@ -23,7 +25,7 @@ export class FeedbackScraperService {
             const selectorForLoadMoreButton = 'button.vendor-reviews__btn--load-more';
             console.info('started scraping')
             let loadMoreVisible = await this.isElementVisible(page, selectorForLoadMoreButton);
-            while (loadMoreVisible) {
+            while (loadMoreVisible && items.length < 100) {
                 items = await page.evaluate(this.extractItems);
                 await page
                 .click(selectorForLoadMoreButton)
@@ -58,45 +60,42 @@ export class FeedbackScraperService {
     private async saveItems(items: any) {
         items.forEach(async (i: any) => {
             // TODO check wheather to update feedback or not 
-            // const oldFeedback = await Feedback.find({ author: i.author, body: i.body });
-            // if (oldFeedback) {
-                
-            // }
-            const rated_at = await this.getDate(i.date);
-            console.log(i)
+            const oldFeedback: IFeedback | null = await Feedback.findOne({ author: i.author, body: i.body }).lean();
+            if (oldFeedback) {
+                if (isEqual(oldFeedback, i)) {
+                    const updated_at = new Date().toISOString();
+                    const rated_at = getDate(i.date);
+                    const feedback = { body: i.body, author: i.author, answers: i.answers, rating: i.rating, updated_at, rated_at };
+                    await Feedback.findOneAndUpdate({ author: i.author, body: i.body }, feedback, { new: true })
+                    return;
+                }
+                return;
+            }
+            const rated_at = getDate(i.date);
             const feedback = new Feedback({ ...i, rated_at });
             await feedback.save();
         })
     }
 
-    public async getDate(dateString: string) {
-        const monthArray = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-        const dateArray = dateString.split(' ');
-        const day = dateArray[0];
-        const year = dateArray[dateArray.length - 2].replace(',', '');
-        const month = monthArray.indexOf(dateArray[1]) + 1;
-        const time = dateArray[dateArray.length - 1].split(':');
-        const hours = time[0].length < 2  ? `0${time[0]}` : time[0]
-        const mins = time[1]
-        return new Date(`${year}-${month}-${day}T${hours}:${mins}:00Z`).toISOString();
-    }
-
-    private extractItems(): { author: string, rating: string, body: string, date: string, answers?: string[] }[] {
+    private extractItems(): IFeedback[] {
         const extractedContainers = document.querySelectorAll('li.vendor-reviews-item__container')
-        const items: { author: string, rating: string, body: string, date: string, answers?: string[] }[] = [];
+        const items: IFeedback[] = [];
         for(let element of extractedContainers) {
             const body: any = element.querySelector('div.vendor-reviews-item__text');
             const author: any = element.querySelector('span.vendor-reviews-item__username');
             const rating: any = element.querySelector('span.rating__value');
             const date: any  = element.querySelector('span.vendor-reviews-item__date');
 
-            const obj: { author: string, rating: string, body: string, date: string, answers?: string[] } = {
-                body: body.textContent, author: author.textContent,  rating: rating.textContent, date: date.textContent
+            const obj: IFeedback = {
+                body: body.textContent, 
+                author: author.textContent,  
+                rating: rating.textContent, 
+                date: date.textContent
             };
 
             const answers: any = element.querySelectorAll('div.vendor-reviews-item__answer-text');
             if (answers) {
-                let answerArray = [];
+                let answerArray: string[] = [];
                 for (let answer of answers) {
                     answerArray.push(answer.textContent);
                 }
