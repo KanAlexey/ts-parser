@@ -1,6 +1,6 @@
 import express, { Application } from 'express';
 
-import { MONGO_URL } from './constants/parserApi.constants';
+import { MONGO_URL, SITE_URL } from './constants/parserApi.constants';
 import { Controller } from './main.controller';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -18,7 +18,7 @@ class App {
         this.setMongoConfig();
 
         this.feedbackController = new Controller(this.app);
-        this.feedbackScraperService = new FeedbackScraperService('https://www.delivery-club.ru/srv/Mcdonalds_msk/feedbacks');
+        this.feedbackScraperService = new FeedbackScraperService(SITE_URL);
         this.feedbackScraperService.crawl();
     }
 
@@ -32,7 +32,9 @@ class App {
     private setMongoConfig() {
         mongoose.Promise = global.Promise;
         mongoose.connect(MONGO_URL, {
-            useNewUrlParser: true
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useFindAndModify: false
         });
     }
 }

@@ -25,7 +25,7 @@ export class FeedbackScraperService {
             const selectorForLoadMoreButton = 'button.vendor-reviews__btn--load-more';
             console.info('started scraping')
             let loadMoreVisible = await this.isElementVisible(page, selectorForLoadMoreButton);
-            while (loadMoreVisible && items.length < 100) {
+            while (loadMoreVisible) {
                 items = await page.evaluate(this.extractItems);
                 await page
                 .click(selectorForLoadMoreButton)
@@ -62,7 +62,7 @@ export class FeedbackScraperService {
             // TODO check wheather to update feedback or not 
             const oldFeedback: IFeedback | null = await Feedback.findOne({ author: i.author, body: i.body }).lean();
             if (oldFeedback) {
-                if (isEqual(oldFeedback, i)) {
+                if (!isEqual(oldFeedback, i)) {
                     const updated_at = new Date().toISOString();
                     const rated_at = getDate(i.date);
                     const feedback = { body: i.body, author: i.author, answers: i.answers, rating: i.rating, updated_at, rated_at };
