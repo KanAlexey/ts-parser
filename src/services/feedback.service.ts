@@ -8,7 +8,7 @@ export class FeedbackService {
   }
   public getAllFeedback(req: Request, res: Response) {
     // pagination
-    const size = Number(req.query.size);
+    const size = Number(req.query.size) || 20;
     const offset = Number(req.query.offset);
     // sorting
     const { sortInfo, filter } = req.body;
